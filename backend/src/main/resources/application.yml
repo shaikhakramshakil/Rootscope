@@ -1,0 +1,60 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:rootscope;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate.format_sql: false
+  flyway:
+    enabled: true
+  kafka:
+    consumer:
+      group-id: rootscope
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+rootscope:
+  scoring:
+    w-temporal: 0.25
+    w-dependency: 0.20
+    w-anomaly: 0.20
+    w-error: 0.20
+    w-deployment: 0.15
+    temporal-tau-minutes: 15.0
+    lookback-minutes: 60
+  kafka:
+    enabled: false
+    topic: rootscope-ingest
+
+logging:
+  level:
+    root: INFO
+    com.rootscope: INFO
