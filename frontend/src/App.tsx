@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { DEMO_INCIDENT, DEMO_MODE, DEMO_TIMELINE } from './demo';
 import { api, seedDemo, type Correlation, type Incident, type TimelineEntry } from './api';
 import './styles.css';
 
@@ -21,9 +22,15 @@ export default function App() {
     setBusy(true);
     setError(null);
     try {
-      const [inc, tl] = await Promise.all([api.getIncident(id), api.timeline(id)]);
-      setIncident(inc);
-      setTimeline(tl);
+      if (DEMO_MODE) {
+        if (id !== DEMO_INCIDENT.id) throw new Error(`Not Found — incident ${id} not found`);
+        setIncident(DEMO_INCIDENT);
+        setTimeline(DEMO_TIMELINE);
+      } else {
+        const [inc, tl] = await Promise.all([api.getIncident(id), api.timeline(id)]);
+        setIncident(inc);
+        setTimeline(tl);
+      }
     } catch (e) {
       setError(String(e));
     } finally {
@@ -35,10 +42,15 @@ export default function App() {
     setBusy(true);
     setError(null);
     try {
-      const inc = await seedDemo();
-      const tl = await api.timeline(inc.id);
-      setIncident(inc);
-      setTimeline(tl);
+      if (DEMO_MODE) {
+        setIncident(DEMO_INCIDENT);
+        setTimeline(DEMO_TIMELINE);
+      } else {
+        const inc = await seedDemo();
+        const tl = await api.timeline(inc.id);
+        setIncident(inc);
+        setTimeline(tl);
+      }
     } catch (e) {
       setError(String(e));
     } finally {
@@ -52,6 +64,7 @@ export default function App() {
     <div className="wrap">
       <header className="page-head">
         <div className="eyebrow"><span className="pip" /><span>Incident intelligence · Monochrome</span></div>
+        {DEMO_MODE && <p className="dim">Demo dataset — scripted incident, no backend connected.</p>}
         <h1>RootScope</h1>
         <p className="lede">Production incident intelligence — probable cause, with evidence.</p>
       </header>
