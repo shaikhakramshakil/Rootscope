@@ -1,4 +1,5 @@
 # RootScope — Production Incident Intelligence Platform
+**Live demo:** https://shaikhakramshakil-rootscope-demo.static.hf.space (scripted incident, no backend needed)
 
 [![CI](https://github.com/shaikhakramshakil/Rootscope/actions/workflows/ci.yml/badge.svg)](https://github.com/shaikhakramshakil/Rootscope/actions/workflows/ci.yml)
 ![Java 17](https://img.shields.io/badge/java-17-blue)
