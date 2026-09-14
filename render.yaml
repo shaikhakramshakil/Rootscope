@@ -1,0 +1,9 @@
+# Render one-click blueprint. Free Docker web service; backend runs on
+# file-backed H2 with Kafka off (see deploy/hf/start.sh).
+services:
+  - type: web
+    name: rootscope
+    runtime: docker
+    dockerfilePath: ./deploy/render/Dockerfile
+    plan: free
+    healthCheckPath: /

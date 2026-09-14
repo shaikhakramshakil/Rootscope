@@ -3,6 +3,9 @@
 # No Kafka (disabled by default), no Postgres. H2 file lives in /data
 # (persistent on HF Spaces) so incidents survive restarts there.
 set -e
+# Render injects $PORT; default keeps local/HF behavior on 7860.
+PORT="${PORT:-7860}"
+sed -i "s/listen 7860;/listen $PORT;/" /etc/nginx/conf.d/rootscope.conf
 
 mkdir -p /data
 export SERVER_PORT=8080
