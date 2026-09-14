@@ -17,3 +17,8 @@ frontend/coverage/
 # OS
 .DS_Store
 Thumbs.db
+
+# Eclipse
+.classpath
+.project
+.settings/

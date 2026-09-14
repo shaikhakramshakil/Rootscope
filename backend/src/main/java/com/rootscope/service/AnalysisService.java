@@ -13,12 +13,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.OptionalInt;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Correlation engine: ranks every candidate event for an incident. */
 @Service
 public class AnalysisService {
+  private static final Logger log = LoggerFactory.getLogger(AnalysisService.class);
+  /** Max candidate events ranked per incident: bounds memory, keeps analyze O(1). */
+  private static final int ANALYSIS_BATCH = 2000;
 
   private final IncidentRepository incidents;
   private final EventRepository events;
@@ -45,7 +51,11 @@ public class AnalysisService {
     Long symptomaticId = incident.getService().getId();
     Instant from = incident.getStartedAt().minusSeconds(props.getLookbackMinutes() * 60L);
     Instant to = incident.getStartedAt().plusSeconds(5 * 60L);
-    List<Event> candidates = events.findByTimestampBetween(from, to);
+    List<Event> candidates =
+        events.findByTimestampBetweenOrderByTimestampAsc(from, to, PageRequest.of(0, ANALYSIS_BATCH));
+    if (candidates.size() == ANALYSIS_BATCH) {
+      log.warn("candidate window truncated at {} events for incident {}", ANALYSIS_BATCH, incidentId);
+    }
     Map<Long, Integer> distances = graph.distancesFrom(symptomaticId);
     correlations.deleteByIncidentId(incidentId);
     List<Correlation> out = new ArrayList<>();

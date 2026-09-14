@@ -31,6 +31,14 @@ public class RootCauseScorer {
     this.props = props;
   }
 
+  /** Fail fast on a misconfigured weight vector instead of scoring outside 0..1 silently. */
+  @jakarta.annotation.PostConstruct
+  void validateWeights() {
+    if (!props.isWeightsValid()) {
+      throw new IllegalStateException("rootscope.scoring weights must sum to 1.0");
+    }
+  }
+
   public record Score(
       double total, double temporal, double dependency, double anomaly,
       double errorCorr, double deployment, List<String> evidence) {}

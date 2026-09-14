@@ -13,6 +13,7 @@ import com.rootscope.repo.ServiceRepository;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,8 +43,15 @@ public class IngestionService {
 
   @Transactional
   public ServiceEntity getOrCreateService(String name, String team, String repository) {
-    return services.findByName(name)
-        .orElseGet(() -> services.save(new ServiceEntity(name, team, repository)));
+    return services.findByName(name).orElseGet(() -> {
+      try {
+        return services.save(new ServiceEntity(name, team, repository));
+      } catch (DataIntegrityViolationException e) {
+        // Lost the insert race with a concurrent ingest (name is unique):
+        // the winner's row is the one to use.
+        return services.findByName(name).orElseThrow(() -> e);
+      }
+    });
   }
 
   @Transactional
@@ -52,8 +60,10 @@ public class IngestionService {
     boolean isError = "ERROR".equalsIgnoreCase(level) || "FATAL".equalsIgnoreCase(level);
     EventType type = isError ? EventType.LOG_ERROR : EventType.METRIC_ANOMALY;
     double severity = isError ? 0.6 : 0.1;
-    return events.save(new Event(svc, type, timestamp, severity,
-        "{\"level\":\"" + level + "\",\"message\":" + json(message) + "}"));
+    var payload = mapper.createObjectNode();
+    payload.put("level", level);
+    payload.put("message", message);
+    return events.save(new Event(svc, type, timestamp, severity, write(payload)));
   }
 
   @Transactional
@@ -118,14 +128,6 @@ public class IngestionService {
       return mapper.writeValueAsString(o);
     } catch (Exception e) {
       return "{}";
-    }
-  }
-
-  private String json(String s) {
-    try {
-      return mapper.writeValueAsString(s);
-    } catch (Exception e) {
-      return "\"\"";
     }
   }
 }
