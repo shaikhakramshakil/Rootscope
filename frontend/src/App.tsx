@@ -50,13 +50,14 @@ export default function App() {
 
   return (
     <div className="wrap">
-      <header>
+      <header className="page-head">
+        <div className="eyebrow"><span className="pip" /><span>Incident intelligence · Monochrome</span></div>
         <h1>RootScope</h1>
-        <p>Production incident intelligence — probable cause, with evidence.</p>
+        <p className="lede">Production incident intelligence — probable cause, with evidence.</p>
       </header>
 
       <div className="actions">
-        <button disabled={busy} onClick={demo}>Load PRD demo (payment v4 incident)</button>
+        <button className="btn-primary" disabled={busy} onClick={demo}>Load PRD demo (payment v4 incident)</button>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -65,11 +66,12 @@ export default function App() {
           }}
         >
           <input
+            className="input"
             placeholder="incident id"
             value={lookupId}
             onChange={(e) => setLookupId(e.target.value)}
           />
-          <button disabled={busy || !lookupId} type="submit">Open</button>
+          <button className="btn-secondary" disabled={busy || !lookupId} type="submit">Open</button>
         </form>
       </div>
 
@@ -80,9 +82,9 @@ export default function App() {
           <section className="card incident">
             <h2>INCIDENT #{incident.id} — {incident.title}</h2>
             <div className="meta">
-              <span>Severity: <b>{incident.severity}</b></span>
-              <span>Service: <b>{incident.service}</b></span>
-              <span>Started: <b>{incident.startedAt}</b></span>
+              <span className="meta-item">Severity <span className={`sev sev-${incident.severity}`}>{incident.severity}</span></span>
+              <span className="meta-item">Service <b>{incident.service}</b></span>
+              <span className="meta-item">Started <code>{incident.startedAt}</code></span>
             </div>
           </section>
 
@@ -90,11 +92,11 @@ export default function App() {
             <section className="card cause">
               <h3>Probable root cause</h3>
               <p className="headline">
-                {top.service} <span className="dim">{top.type}</span> <Score c={top} />
+                <span className="cause-service">{top.service}</span> <span className="dim">{top.type}</span> <Score c={top} />
               </p>
               <ul className="evidence">
                 {top.reason.split('; ').map((r, i) => (
-                  <li key={i}>✓ {r}</li>
+                  <li key={i}>{r}</li>
                 ))}
               </ul>
               {incident.trigger && (
@@ -109,9 +111,11 @@ export default function App() {
           <section className="card">
             <h3>Ranked candidates</h3>
             {incident.ranking.length === 0 && (
-              <p className="dim">No events in the 60-minute lookback window — nothing to rank.</p>
+              <p className="empty">No events in the 60-minute lookback window — nothing to rank.</p>
             )}
-            <table>
+            {incident.ranking.length > 0 && (
+            <div className="table-wrap">
+            <table className="geist">
               <thead>
                 <tr>
                   <th>service</th><th>type</th><th>time</th>
@@ -121,14 +125,16 @@ export default function App() {
               <tbody>
                 {incident.ranking.map((c) => (
                   <tr key={c.eventId}>
-                    <td>{c.service}</td><td>{c.type}</td><td>{c.timestamp}</td>
-                    <td><b>{c.score.toFixed(4)}</b></td>
-                    <td>{c.temporal}</td><td>{c.dependency}</td><td>{c.anomaly}</td>
-                    <td>{c.errorCorr}</td><td>{c.deployment}</td>
+                    <td>{c.service}</td><td>{c.type}</td><td className="num">{c.timestamp}</td>
+                    <td className="num"><b>{c.score.toFixed(4)}</b></td>
+                    <td className="num">{c.temporal}</td><td className="num">{c.dependency}</td><td className="num">{c.anomaly}</td>
+                    <td className="num">{c.errorCorr}</td><td className="num">{c.deployment}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            </div>
+            )}
           </section>
 
           <section className="card">
